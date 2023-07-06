@@ -25,7 +25,7 @@ void ObjectLoad(Object *o, const char *path)
 void ObjectsLoad(Object *o, const char **paths, int num)
 {
 	for(int i = 0; i < num; i++)
-		ObjectLoad(o, paths[i]);
+		ObjectLoad(o + i, paths[i]);
 }
 
 void ObjectUnload(Object *o)

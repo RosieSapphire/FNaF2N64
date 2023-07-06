@@ -35,7 +35,7 @@ void OfficeDraw(void)
 	PerspectiveEnd();
 	MaskLoad();
 	MaskDraw();
-	CameraLoad();
+	CameraFlipLoad();
 	CameraFlipDraw();
 }
 

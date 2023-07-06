@@ -25,7 +25,7 @@ static const char *flipAnimPaths[FLIP_ANIM_LEN] = {
 	"camflip10.ci8.sprite",
 };
 
-void CameraLoad(void)
+void CameraFlipLoad(void)
 {
 	if(isLoaded)
 		return;
@@ -33,7 +33,7 @@ void CameraLoad(void)
 	isLoaded = true;
 }
 
-void CameraUnload(void)
+void CameraFlipUnload(void)
 {
 	if(!isLoaded)
 		return;

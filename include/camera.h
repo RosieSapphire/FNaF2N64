@@ -5,8 +5,8 @@
 
 extern bool camIsUsing, camIsVisible;
 
-void CameraLoad(void);
-void CameraUnload(void);
+void CameraFlipLoad(void);
+void CameraFlipUnload(void);
 void CameraFlipDraw(void);
 void CameraFlipUpdate(float dt, struct controller_data down);
 

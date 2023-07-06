@@ -1,7 +1,7 @@
 #include <libdragon.h>
 #include "object.h"
 #include "util.h"
-#include <stdint.h>
+#include "mask.h"
 
 #define FLIP_ANIM_LEN 11
 
@@ -54,16 +54,16 @@ void CameraFlipDraw(void)
 
 void CameraFlipUpdate(float dt, struct controller_data down)
 {
+	dt *= camIsUsing * 2 - 1;
+	flipTimer = Clampf(flipTimer + dt * SpeedFPS(90), 0, FLIP_ANIM_LEN);
+
+	if(isMaskOn)
+		return;
+
 	int flipFrame = (int)flipTimer;
 	bool atStart = flipFrame == 0;
 	bool atEnd = flipFrame == FLIP_ANIM_LEN;
 	camIsUsing ^= down.c->R && (atStart || atEnd);
 	camIsVisible = atEnd;
 
-	if(camIsUsing)
-		flipTimer += dt * SpeedFPS(90);
-	else
-		flipTimer -= dt * SpeedFPS(50);
-
-	flipTimer = Clampf(flipTimer, 0, FLIP_ANIM_LEN);
 }

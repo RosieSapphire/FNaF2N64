@@ -1,6 +1,7 @@
 #include "mask.h"
 #include "object.h"
 #include "util.h"
+#include "camera.h"
 
 #define MASK_ANIM_LEN 9
 
@@ -68,18 +69,13 @@ void MaskUpdate(float dt, struct controller_data down)
 	int flipFrame = (int)flipTimer;
 	bool atStart = flipFrame == 0;
 	bool atEnd = flipFrame == MASK_ANIM_LEN;
-	bool buttonsDown = down.c->L || down.c->Z;
-	if(buttonsDown && (atStart || atEnd))
-		isMaskOn = !isMaskOn;
+	isMaskOn ^= (down.c->L || down.c->Z) &&
+		(atStart || atEnd) && !camIsUsing;
 
 	int maskFlipSpeed = 75;
-	if(isMaskOn)
-		flipTimer += dt * SpeedFPS(maskFlipSpeed);
-	else
-		flipTimer -= dt * SpeedFPS(maskFlipSpeed);
-
-	flipTimer = Clampf(flipTimer, 0, MASK_ANIM_LEN);
-
+	dt *= isMaskOn * 2 - 1;
+	flipTimer = Clampf(flipTimer + dt * SpeedFPS(maskFlipSpeed),
+			0, MASK_ANIM_LEN);
 	if(!isMaskOn)
 		return;
 

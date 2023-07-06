@@ -1,0 +1,6 @@
+.cache/
+build
+filesystem
+*.json
+*.z64
+*.sh

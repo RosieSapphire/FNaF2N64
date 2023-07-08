@@ -1,85 +1,89 @@
 #include "mask.h"
 #include "object.h"
 #include "util.h"
-#include "camera.h"
+#include "sfx.h"
 
-#define MASK_ANIM_LEN 9
+#define MASK_FRAMES 9
 
-static Object flipAnim[MASK_ANIM_LEN];
+Object maskFlip[MASK_FRAMES];
 Object maskOn;
-float flipTimer = 0.0f;
-bool isMaskOn = false;
-int maskOnX, maskOnY;
-float maskBobTimer = 0.0f;
-static bool isLoaded = false;
-
-static const char *flipAnimPaths[MASK_ANIM_LEN] = {
-	"mask0.ci8.sprite",
-	"mask1.ci8.sprite",
-	"mask2.ci8.sprite",
-	"mask3.ci8.sprite",
-	"mask4.ci8.sprite",
-	"mask5.ci8.sprite",
-	"mask6.ci8.sprite",
-	"mask7.ci8.sprite",
-	"mask8.ci8.sprite",
+const char *maskFlipPaths[MASK_FRAMES] = {
+	"rom:/mask0.ci8.sprite",
+	"rom:/mask1.ci8.sprite",
+	"rom:/mask2.ci8.sprite",
+	"rom:/mask3.ci8.sprite",
+	"rom:/mask4.ci8.sprite",
+	"rom:/mask5.ci8.sprite",
+	"rom:/mask6.ci8.sprite",
+	"rom:/mask7.ci8.sprite",
+	"rom:/mask8.ci8.sprite",
 };
+
+static float timer = 0.0f;
+bool isMaskOn = false;
+float maskX, maskY;
 
 void MaskLoad(void)
 {
-	if(isLoaded)
-		return;
-	ObjectsLoad(flipAnim, flipAnimPaths, MASK_ANIM_LEN);
-	ObjectLoad(&maskOn, "mask_on.ci8.sprite");
-	isLoaded = true;
+	ObjectsLoad(maskFlip, MASK_FRAMES, maskFlipPaths);
+	ObjectLoad(&maskOn, "rom:/mask_on.ci8.sprite");
 }
 
 void MaskUnload(void)
 {
-	if(!isLoaded)
-		return;
-	ObjectsUnload(flipAnim, MASK_ANIM_LEN);
+	ObjectsUnload(maskFlip, MASK_FRAMES);
 	ObjectUnload(&maskOn);
-	isLoaded = false;
+}
+
+bool MaskAtStart(void)
+{
+	int frame = (int)timer;
+	return frame == 0;
+}
+
+bool MaskAtEnd(void)
+{
+	int frame = (int)timer;
+	return frame == MASK_FRAMES;
+}
+
+bool MaskAtStartOrEnd(void)
+{
+	return MaskAtStart() || MaskAtEnd();
 }
 
 void MaskDraw(void)
 {
-	int flipFrame = (int)flipTimer;
-	bool atStart = flipFrame == 0;
-
-	if(!isMaskOn && atStart)
-		return;
-
-	bool atEnd = flipFrame == MASK_ANIM_LEN;
-	rdpq_set_mode_copy(true);
-	if(!atStart && !atEnd) {
-		ObjectDrawFrame(flipAnim, 0, 0, 0, 0, flipFrame,
-				MASK_ANIM_LEN, flipAnimPaths, false);
+	if(!MaskAtStartOrEnd()) {
+		ObjectDraw(maskFlip[(int)timer], 0, 0, 0, 0);
 		return;
 	}
 
-	if(atEnd) {
-		ObjectDraw(maskOn, maskOnX, maskOnY, 100, 66);
-	}
+	if(!MaskAtEnd())
+		return;
+
+	ObjectDraw(maskOn, maskX, maskY, 100, 66);
 }
 
-void MaskUpdate(float dt, struct controller_data down)
+void MaskUpdate(double dt, struct controller_data down)
 {
-	int flipFrame = (int)flipTimer;
-	bool atStart = flipFrame == 0;
-	bool atEnd = flipFrame == MASK_ANIM_LEN;
-	isMaskOn ^= (down.c->L || down.c->Z) &&
-		(atStart || atEnd) && !camIsUsing;
+	timer = Clampf(timer + dt * (isMaskOn * 2 - 1) * SpeedFPS(75),
+			0, MASK_FRAMES);
 
-	int maskFlipSpeed = 75;
-	dt *= isMaskOn * 2 - 1;
-	flipTimer = Clampf(flipTimer + dt * SpeedFPS(maskFlipSpeed),
-			0, MASK_ANIM_LEN);
-	if(!isMaskOn)
+	bool inputDown = (down.c->Z || down.c->L);
+	bool isMaskOnLast = isMaskOn;
+	isMaskOn ^= inputDown && MaskAtStartOrEnd();
+
+	static float bobTimer = 0.0f;
+	bobTimer += dt;
+	maskX = (sinf(bobTimer) * VCon(75));
+	maskY = (sinf(bobTimer * 2) * VCon(34));
+
+	float maskVolume = 0.6f * MaskAtEnd();
+	mixer_ch_set_vol(SFXC_MASK_BREATH, maskVolume, maskVolume);
+
+	if(isMaskOn == isMaskOnLast)
 		return;
 
-	maskBobTimer += dt;
-	maskOnX = (sinf(maskBobTimer) * 24);
-	maskOnY = (sinf(maskBobTimer * 2) * 11);
+	wav64_play(isMaskOn ? &maskOnSFX : &maskOffSFX, SFXC_MASK_FLIP);
 }

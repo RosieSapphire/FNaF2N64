@@ -4,7 +4,7 @@
 #include <libdragon.h>
 
 enum LightState {
-	LIGHT_NONE,
+	LIGHT_OFF,
 	LIGHT_LEFT,
 	LIGHT_CENTER,
 	LIGHT_RIGHT,
@@ -13,6 +13,8 @@ enum LightState {
 
 extern enum LightState lightState;
 
+void LightsLoad(void);
+void LightsUnload(void);
 void LightsDraw(void);
 void LightsUpdate(struct controller_data held);
 

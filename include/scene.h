@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef SCENE_H_
+#define SCENE_H_
 
 enum Scene {
 	SCENE_TITLE_SCREEN,
@@ -7,4 +7,4 @@ enum Scene {
 	SCENE_COUNT,
 };
 
-#endif /* SCENE_H */
+#endif /* SCENE_H_ */

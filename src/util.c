@@ -1,8 +1,9 @@
 #include "util.h"
+#include <math.h>
 
 int VCon(int v)
 {
-	return (float)v * 0.3125f;
+	return (int)ceilf((float)v * 0.3125f);
 }
 
 int Clampi(int x, int min, int max)

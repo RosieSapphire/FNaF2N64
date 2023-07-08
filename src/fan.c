@@ -1,29 +1,36 @@
 #include "fan.h"
+#include "office.h"
 #include "object.h"
 #include "util.h"
-#include "office.h"
 
-#define FAN_ANIM_LEN 4
+#define FAN_FRAMES 4
 
-Object fanAnim[4];
-float fanTimer = 0.0f;
-
-const char *fanPaths[FAN_ANIM_LEN] = {
-	"fan0.ci8.sprite",
-	"fan1.ci8.sprite",
-	"fan2.ci8.sprite",
-	"fan3.ci8.sprite",
+Object fanAnim[FAN_FRAMES];
+const char *fanAnimPaths[FAN_FRAMES] = {
+	"rom:/fan0.ci8.sprite",
+	"rom:/fan1.ci8.sprite",
+	"rom:/fan2.ci8.sprite",
+	"rom:/fan3.ci8.sprite",
 };
+
+static float timer = 0.0f;
+
+void FanLoad(void)
+{
+	ObjectsLoad(fanAnim, FAN_FRAMES, fanAnimPaths);
+}
+
+void FanUnload(void)
+{
+	ObjectsUnload(fanAnim, FAN_FRAMES);
+}
 
 void FanDraw(void)
 {
-	int fanFrame = (int)fanTimer;
-	ObjectDrawFrame(fanAnim, 568 + officeTurn, 766, 0, 434,
-			fanFrame, FAN_ANIM_LEN, fanPaths, false);
+	ObjectDraw(fanAnim[(int)timer], 568 + officeTurn, 766, 0, 434);
 }
 
-void FanUpdate(float dt)
+void FanUpdate(double dt)
 {
-	fanTimer += dt * SpeedFPS(100);
-	fanTimer = Wrapf(fanTimer, FAN_ANIM_LEN, NULL);
+	timer = Wrapf(timer + dt * SpeedFPS(100), FAN_FRAMES, NULL);
 }

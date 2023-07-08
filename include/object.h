@@ -9,13 +9,10 @@ typedef struct {
 } Object;
 
 void ObjectLoad(Object *o, const char *path);
-void ObjectsLoad(Object *o, const char **paths, int num);
+void ObjectsLoad(Object *o, int num, const char **paths);
 void ObjectUnload(Object *o);
 void ObjectsUnload(Object *o, int num);
 void ObjectDraw(Object o, int posX, int posY, int originX, int originY);
-void ObjectDrawFrame(Object *o, int posX, int posY, int originX,
-		int originY, int ind, int max, const char **paths,
-		bool unloadPrevious);
-void ObjectsDebugLoaded(float timeNow);
+void ObjectDebug(double dt);
 
 #endif /* OBJECT_H_ */

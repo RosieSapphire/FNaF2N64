@@ -1,28 +1,22 @@
 #include "object.h"
 #include "util.h"
-#include <malloc.h>
-#include <string.h>
 
-int objectsLoaded = 0;
-float lastTimeLoaded = 0.0;
-float debugTimer = 0.0;
+double debugTimer = 0.0;
+double lastLoad = 0.0;
+int loads = 0;
+int unloads = 0;
 
 void ObjectLoad(Object *o, const char *path)
 {
 	if(o->isLoaded)
 		return;
-
-	char *fullPath = malloc(strlen(path) + 5);
-	strncpy(fullPath, "rom:/", 6);
-	fullPath = strcat(fullPath, path);
-	o->spr = sprite_load(fullPath);
+	o->spr = sprite_load(path);
 	o->isLoaded = true;
-	free(fullPath);
-	objectsLoaded++;
-	lastTimeLoaded = debugTimer;
+	lastLoad = debugTimer;
+	loads++;
 }
 
-void ObjectsLoad(Object *o, const char **paths, int num)
+void ObjectsLoad(Object *o, int num, const char **paths)
 {
 	for(int i = 0; i < num; i++)
 		ObjectLoad(o + i, paths[i]);
@@ -35,7 +29,7 @@ void ObjectUnload(Object *o)
 
 	sprite_free(o->spr);
 	o->isLoaded = false;
-	objectsLoaded--;
+	unloads++;
 }
 
 void ObjectsUnload(Object *o, int num)
@@ -54,26 +48,11 @@ void ObjectDraw(Object o, int posX, int posY, int originX, int originY)
 	rdpq_sprite_blit(o.spr, VCon(posX), VCon(posY), &parms);
 }
 
-void ObjectDrawFrame(Object *o, int posX, int posY, int originX,
-		int originY, int ind, int max, const char **paths,
-		bool unloadPrevious)
+void ObjectDebug(double dt)
 {
-	if(unloadPrevious) {
-		for(int i = 0; i < max; i++) {
-			if(i == ind)
-				continue;
-
-			ObjectUnload(o + i);
-		}
-	}
-
-	ObjectLoad(o + ind, paths[ind]);
-	ObjectDraw(o[ind], posX, posY, originX, originY);
-}
-
-void ObjectsDebugLoaded(float timeNow)
-{
-	debugTimer = timeNow;
-	debugf("Objects loaded %d\nTime since last load %.4lf\n\n",
-			objectsLoaded, debugTimer - lastTimeLoaded);
+	debugTimer += dt;
+	debugf("%d Local Objs, %d Global Objs (%d loads, %d unloads)\n"
+			"Last Load %f secs ago\n\n",
+			loads - unloads - 6, 6, loads,
+			unloads, debugTimer - lastLoad);
 }

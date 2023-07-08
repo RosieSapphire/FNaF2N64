@@ -1,17 +1,21 @@
 GAME=fnaf2
 BUILD_DIR=build
-CFLAGS=-O2 -Wall -Wextra -pedantic -Iinclude
+CFLAGS=-pedantic -Wextra -Iinclude
 include $(N64_INST)/include/n64.mk
 
-src=$(wildcard src/*.c)
+src = $(wildcard src/*.c)
 assets_wav = $(wildcard assets/*.wav)
 assets_png = $(wildcard assets/*.png)
+assets_ttf = $(wildcard assets/*.ttf)
 
 assets_conv = $(addprefix filesystem/,$(notdir $(assets_wav:%.wav=%.wav64))) \
-              $(addprefix filesystem/,$(notdir $(assets_png:%.png=%.sprite)))
+              $(addprefix filesystem/,$(notdir $(assets_png:%.png=%.sprite))) \
+              $(addprefix filesystem/,$(notdir $(assets_ttf:%.ttf=%.font64)))
 
-AUDIOCONV_FLAGS ?=
-MKSPRITE_FLAGS ?=
+AUDIOCONV_FLAGS=--yw-compress
+#MKSPRITE_FLAGS=--compress
+MKSPRITE_FLAGS=--dither RANDOM
+#MKSPRITE_FLAGS=
 
 all: $(GAME).z64
 
@@ -25,10 +29,30 @@ filesystem/%.sprite: assets/%.png
 	@echo "    [SPRITE] $@"
 	@$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
+filesystem/medium.font64: assets/medium.ttf
+	@mkdir -p $(dir $@)
+	@echo "    [FONT] $@"
+	@$(N64_MKFONT) --size 18 $(MKFONT_FLAGS) -o filesystem "$<"
+
+filesystem/ocr.font64: assets/ocr.ttf
+	@mkdir -p $(dir $@)
+	@echo "    [FONT] $@"
+	@$(N64_MKFONT) --size 24 $(MKFONT_FLAGS) -o filesystem "$<"
+
+filesystem/ocr2.font64: assets/ocr2.ttf
+	@mkdir -p $(dir $@)
+	@echo "    [FONT] $@"
+	@$(N64_MKFONT) --size 18 $(MKFONT_FLAGS) -o filesystem "$<"
+
+filesystem/pixel.font64: assets/pixel.ttf
+	@mkdir -p $(dir $@)
+	@echo "    [FONT] $@"
+	@$(N64_MKFONT) --size 8 $(MKFONT_FLAGS) -o filesystem "$<"
+
 $(BUILD_DIR)/$(GAME).dfs: $(assets_conv)
 $(BUILD_DIR)/$(GAME).elf: $(src:%.c=$(BUILD_DIR)/%.o)
 
-$(GAME).z64: N64_ROM_TITLE="RSPQ Demo"
+$(GAME).z64: N64_ROM_TITLE="FNAF 2"
 $(GAME).z64: $(BUILD_DIR)/$(GAME).dfs 
 
 clean:

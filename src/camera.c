@@ -177,8 +177,8 @@ void CameraUILoad(void)
 
 	rspq_block_begin();
 	for(int i = 0; i < CAM_COUNT; i++)
-		AtlasDraw(camNameAtlas, buttonPos[i][0] - 23,
-				buttonPos[i][1] - 15, i);
+		AtlasDraw(camNameAtlas, buttonPos[i][0],
+				buttonPos[i][1], 21, 12, i);
 	camNamesBlock = rspq_block_end();
 }
 

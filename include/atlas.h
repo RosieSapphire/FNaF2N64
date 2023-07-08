@@ -10,7 +10,7 @@ typedef struct {
 } Atlas;
 
 void AtlasLoad(Atlas *a, const char *path, int segW, int segH);
-void AtlasDraw(Atlas a, int px, int py, int ind);
+void AtlasDraw(Atlas a, int px, int py, int ox, int oy, int ind);
 void AtlasUnload(Atlas *a);
 
 #endif /* Atlas_H_ */

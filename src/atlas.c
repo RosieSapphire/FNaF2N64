@@ -1,7 +1,6 @@
 #include "atlas.h"
 #include <malloc.h>
-
-#define DRAW_SCALE 0.3125f
+#include "util.h"
 
 void AtlasLoad(Atlas *a, const char *path, int segW, int segH)
 {
@@ -14,16 +13,18 @@ void AtlasLoad(Atlas *a, const char *path, int segW, int segH)
 	a->segH = segH;
 }
 
-void AtlasDraw(Atlas a, int px, int py, int ind)
+void AtlasDraw(Atlas a, int px, int py, int ox, int oy, int ind)
 {
-	px = roundf((float)px * DRAW_SCALE);
-	py = roundf((float)py * DRAW_SCALE);
+	px = VCon(px);
+	py = VCon(py);
+	ox = VCon(ox);
+	oy = VCon(oy);
 	rdpq_mode_dithering(DITHER_NOISE_NONE);
 	rdpq_mode_filter(FILTER_POINT);
 
-	int x0 = px;
+	int x0 = px - ox;
 	int x1 = x0 + a.segW;
-	int y0 = py;
+	int y0 = py - oy;
 	int y1 = y0 + a.segH + ind - ind;
 	int ix = ind % a.numX;
 	int iy = ind / a.numX;

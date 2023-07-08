@@ -14,7 +14,7 @@ enum CameraStates {
 	CAM_COUNT,
 };
 
-extern enum CameraStates camState;
+extern enum CameraStates camSelected;
 
 void CameraFlipLoad(void);
 void CameraFlipUnload(void);
@@ -28,5 +28,6 @@ void CameraFlipDraw(void);
 void CameraUIDraw(void);
 void CameraFlipUpdate(double dt, struct controller_data down);
 void CameraViewDraw(void);
+void CameraViewUpdate(struct controller_data down);
 
 #endif /* MASK_H */

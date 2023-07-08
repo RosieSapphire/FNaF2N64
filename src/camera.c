@@ -4,6 +4,8 @@
 #include "util.h"
 #include "sfx.h"
 #include "blip.h"
+#include "global.h"
+#include "lights.h"
 
 #define FLIP_FRAMES 11
 
@@ -132,13 +134,19 @@ const char *kidsCoveCamPaths[3] = {
 	"rom:/kids_cove_empty.ci8.sprite",
 };
 
+const int camStateCounts[CAM_COUNT] = {
+	4, 5, 5, 7, 6, 6, 6, 7, 7, 6, 6, 3
+};
+
 const char **viewPaths[CAM_COUNT] = {
 	party1CamPaths, party2CamPaths, party3CamPaths, party4CamPaths,
 	leftVentCamPaths, rightVentCamPaths, mainHallCamPaths, partsCamPaths,
 	stageCamPaths, gameAreaCamPaths, prizeCornerCamPaths, kidsCoveCamPaths
 };
 
-enum CameraStates camState = CAM_09;
+enum CameraStates camSelected = CAM_09;
+int camStateLast = 0;
+int camState = 0;
 Object views[CAM_COUNT];
 
 static float timer = 0.0f;
@@ -193,7 +201,8 @@ void CameraUIUnload(void)
 void CameraViewsUnload(bool excludeUsing)
 {
 	for(int i = 0; i < CAM_COUNT; i++) {
-		if(excludeUsing && (i == (int)camState))
+		if(excludeUsing && (i == (int)camSelected)
+				&& (camStateLast == camState))
 			continue;
 
 		ObjectUnload(views + i);
@@ -231,13 +240,35 @@ void CameraUIDraw(void)
 	rdpq_mode_alphacompare(true);
 	rspq_block_run(mapBlock);
 
+	/* Draw cam buttons */
 	for(int i = 0; i < CAM_COUNT; i++) {
-		int buttonState = ((int)camState == i);
+		int buttonState = ((int)camSelected == i);
 		ObjectDraw(buttons[buttonState], buttonPos[i][0],
 				buttonPos[i][1], 30, 20);
 	}
-	
+
+
 	rspq_block_run(camNamesBlock);
+
+	const char *camRoomNames[CAM_COUNT] = {
+		"Party Room 1",
+		"Party Room 2",
+		"Party Room 3",
+		"Party Room 4",
+		"Left Air Vent",
+		"Right Air Vent",
+		"Main Hall",
+		"Parts/Service",
+		"Show Stage",
+		"Game Area",
+		"Prize Corner",
+		"Kid's Cove",
+	};
+
+	rdpq_font_begin(RGBA16(0xFF, 0xFF, 0xFF, 0xFF));
+	rdpq_font_position(172, 96);
+	rdpq_font_print(pixelFont, camRoomNames[camSelected]);
+	rdpq_font_end();
 }
 
 void CameraFlipUpdate(double dt, struct controller_data down)
@@ -252,16 +283,8 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 	isCameraVisible = CameraFlipAtEnd();
 	mixer_ch_set_vol(SFXC_CAMERA_FLIP, 0.5f, 0.5f);
 
-	/* Handle events for just opening and closing camera */
-	if(isCameraVisible != isCameraVisibleLast) {
-		if(isCameraVisible) {
-			BlipTrigger(true, 1);
-			mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0.7f, 0.7f);
-		} else {
-			CameraViewsUnload(false);
-			mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0.0f, 0.0f);
-		}
-	}
+	if(isCameraVisible && !isCameraVisibleLast)
+		BlipTrigger(true, 1);
 
 	if(isCameraUsing == isCameraUsingLast)
 		return;
@@ -272,6 +295,52 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 void CameraViewDraw(void)
 {
 	CameraViewsUnload(true);
-	ObjectLoad(views + camState, viewPaths[camState][0]);
-	ObjectDraw(views[camState], 0, 0, 0, 0);
+	ObjectLoad(views + camSelected, viewPaths[camSelected][camState]);
+	ObjectDraw(views[camSelected], 0, 0, 0, 0);
+}
+
+void CameraViewUpdate(struct controller_data down)
+{
+	if(!isCameraVisible) {
+		mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0, 0);
+		CameraViewsUnload(false);
+		return;
+	}
+
+	mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0.7f, 0.7f);
+
+	bool dirs[4] = {
+		down.c->C_left, down.c->C_right, down.c->C_up, down.c->C_down,
+	};
+
+	camStateLast = camState;
+	camState = lightState > 0;
+
+	int camSelectedNextLUT[CAM_COUNT][4] = {
+		{    -1, CAM_02, CAM_03, CAM_05},
+		{CAM_01, CAM_10, CAM_04, CAM_06},
+		{    -1, CAM_04, CAM_08, CAM_01},
+		{CAM_03, CAM_10, CAM_07, CAM_02},
+		{    -1, CAM_06, CAM_01,     -1},
+		{CAM_05,     -1, CAM_02,     -1},
+		{CAM_08, CAM_09,     -1, CAM_04},
+		{    -1, CAM_07,     -1, CAM_03},
+		{CAM_07,     -1,     -1, CAM_11},
+		{CAM_04, CAM_11, CAM_09, CAM_12},
+		{CAM_10,     -1, CAM_09, CAM_12},
+		{CAM_10,     -1, CAM_11,     -1},
+	};
+
+	for(int i = 0; i < 4; i++) {
+		if(!dirs[i])
+			continue;
+
+		int newCamSelected = camSelectedNextLUT[camSelected][i];
+		if((int)newCamSelected == -1)
+			continue;
+
+		camSelected = newCamSelected;
+		BlipTrigger(true, 1);
+		break;
+	}
 }

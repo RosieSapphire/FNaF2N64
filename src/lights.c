@@ -77,7 +77,8 @@ void LightsUpdate(struct controller_data held)
 			if(isTurnedRight)
 				lightState = LIGHT_RIGHT;
 		}
-	}
+	} else if(isCameraVisible && held.c->A)
+		lightState = LIGHT_CENTER;
 
 	float humVolume = 0.4f * (lightState > 0);
 	mixer_ch_set_vol(SFXC_LIGHT_HUM, humVolume, humVolume);

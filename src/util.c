@@ -3,7 +3,7 @@
 
 int VCon(int v)
 {
-	return (int)ceilf((float)v * 0.3125f);
+	return roundf((float)v * 0.3125f);
 }
 
 int Clampi(int x, int min, int max)

@@ -18,7 +18,7 @@ float windDownTimer = 0.0f;
 float windUpSFXTimer = 0.0f;
 float windUpTimer = 0.0f;
 float windCooldown = 0.0f;
-int windValue = WIND_VALUE_MAX - 1;
+int windValue;
 bool isWinding = false;
 
 Object windStates[WIND_STATES];
@@ -63,6 +63,8 @@ void MusicBoxLoad(void)
 	rdpq_font_print(pixelFont, "Music Box");
 	rdpq_font_end();
 	windUpTextBlock = rspq_block_end();
+
+	windValue = WIND_VALUE_MAX - 1;
 }
 
 void MusicBoxUnload(void)
@@ -98,7 +100,7 @@ void MusicBoxUpdate(double dt, struct controller_data held)
 
 	bool addWindValue;
 	windUpTimer = Wrapf(windUpTimer, 1.0f, &addWindValue);
-	windValue += 5 * addWindValue;
+	windValue = Clampi(windValue + 5 * addWindValue, 0, WIND_VALUE_MAX - 1);
 
 	bool playWindSound;
 	windUpSFXTimer = Wrapf(windUpSFXTimer, 0.5f, &playWindSound);

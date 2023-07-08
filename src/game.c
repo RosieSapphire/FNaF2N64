@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "blip.h"
 #include "static.h"
+#include "music_box.h"
 
 static bool isLoaded = false;
 
@@ -21,11 +22,13 @@ void GameLoad(void)
 	MaskLoad();
 	CameraUILoad();
 	CameraFlipLoad();
+	MusicBoxLoad();
 
 	wav64_play(&lightHumSFX, SFXC_LIGHT_HUM);
 	wav64_play(&fanSFX, SFXC_FAN);
 	wav64_play(&maskBreathSFX, SFXC_MASK_BREATH);
 	wav64_play(&camDroneSFX, SFXC_CAMERA_DRONE);
+	wav64_play(&boxMusic, SFXC_MUSIC_BOX);
 
 	isLoaded = true;
 }
@@ -43,6 +46,7 @@ void GameUnload(void)
 	CameraViewsUnload(false);
 	isCameraVisible = false;
 	isCameraUsing = false;
+	MusicBoxUnload();
 
 	MixerStopEverything();
 
@@ -60,18 +64,21 @@ void GameDraw(void)
 		LightsDraw();
 		PerspectiveEnd();
 	} else {
-		CameraViewDraw();
 		rdpq_set_mode_copy(false);
+		PerspectiveBegin();
+		CameraViewDraw();
+		PerspectiveEnd();
 		rdpq_set_mode_standard();
 		rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
 		StaticDraw();
 		CameraUIDraw();
+		MusicBoxDraw();
 		BlipDraw();
 	}
 
 	rdpq_set_mode_copy(true);
-	MaskDraw();
 	CameraFlipDraw();
+	MaskDraw();
 }
 
 enum Scene GameUpdate(double dt, struct controller_data down,
@@ -88,6 +95,7 @@ enum Scene GameUpdate(double dt, struct controller_data down,
 	MaskUpdate(dt, down);
 	CameraFlipUpdate(dt, down);
 	CameraViewUpdate(dt, down);
+	MusicBoxUpdate(dt, held);
 
 	return SCENE_MAIN_GAME;
 }

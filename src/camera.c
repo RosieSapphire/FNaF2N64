@@ -6,6 +6,7 @@
 #include "blip.h"
 #include "global.h"
 #include "lights.h"
+#include "mask.h"
 
 #define FLIP_FRAMES 11
 #define CAM_TURN_MIN -576
@@ -280,6 +281,9 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 	float flipSpeed = isCameraUsing ? SpeedFPS(90) : SpeedFPS(50);
 	timer = Clampf(timer + dt * (isCameraUsing * 2 - 1) * flipSpeed,
 			0, FLIP_FRAMES);
+
+	if(isMaskOn)
+		return;
 
 	bool isCameraUsingLast = isCameraUsing;
 	isCameraUsing ^= down.c->R && CameraFlipAtStartOrEnd();

@@ -2,7 +2,7 @@
 
 wav64_t lightHumSFX, fanSFX, noseHonkSFX, maskOnSFX, maskOffSFX,
        maskBreathSFX, blipSFX1, blipSFX2, titleMusic, staticSFX, camUpSFX,
-       camDownSFX, camDroneSFX;
+       camDownSFX, camDroneSFX, boxMusic, windSFX;
 
 void SFXLoad(void)
 {
@@ -47,6 +47,12 @@ void SFXLoad(void)
 	mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0.0f, 0.0f);
 	wav64_open(&camDroneSFX, "rom:/cam_drone.wav64");
 	wav64_set_loop(&camDroneSFX, true);
+
+	mixer_ch_set_vol(SFXC_MUSIC_BOX, 0.0f, 0.0f);
+	wav64_open(&boxMusic, "rom:/music_box.wav64");
+	wav64_set_loop(&boxMusic, true);
+
+	wav64_open(&windSFX, "rom:/wind.wav64");
 }
 
 void MixerStopEverything(void)

@@ -13,12 +13,13 @@ enum SFXChannels {
 	SFXC_FAN,
 	SFXC_BLIP,
 	SFXC_STATIC,
+	SFXC_MUSIC_BOX,
 	SFXC_COUNT,
 };
 
 extern wav64_t lightHumSFX, fanSFX, noseHonkSFX, maskOnSFX, maskOffSFX,
        maskBreathSFX, blipSFX1, blipSFX2, titleMusic, staticSFX, camUpSFX,
-       camDownSFX, camDroneSFX;
+       camDownSFX, camDroneSFX, boxMusic, windSFX;
 
 void SFXLoad(void);
 void MixerStopEverything(void);

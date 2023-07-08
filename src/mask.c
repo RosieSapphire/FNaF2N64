@@ -2,6 +2,7 @@
 #include "object.h"
 #include "util.h"
 #include "sfx.h"
+#include "camera.h"
 
 #define MASK_FRAMES 9
 
@@ -69,6 +70,9 @@ void MaskUpdate(double dt, struct controller_data down)
 {
 	timer = Clampf(timer + dt * (isMaskOn * 2 - 1) * SpeedFPS(75),
 			0, MASK_FRAMES);
+
+	if(isCameraUsing)
+		return;
 
 	bool inputDown = (down.c->Z || down.c->L);
 	bool isMaskOnLast = isMaskOn;

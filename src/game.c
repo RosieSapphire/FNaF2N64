@@ -31,6 +31,7 @@ void GameLoad(void)
 	wav64_play(&maskBreathSFX, SFXC_MASK_BREATH);
 	wav64_play(&camDroneSFX, SFXC_CAMERA_DRONE);
 	wav64_play(&boxMusic, SFXC_MUSIC_BOX);
+	wav64_play(&stareSFX, SFXC_STARE);
 
 	isLoaded = true;
 }

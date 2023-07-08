@@ -286,6 +286,12 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 	timer = Clampf(timer + dt * (isCameraUsing * 2 - 1) * flipSpeed,
 			0, FLIP_FRAMES);
 
+	if(glitchTimer) {
+		mixer_ch_set_vol(SFXC_STARE, 0.6f, 0.6f);
+	} else {
+		mixer_ch_set_vol(SFXC_STARE, 0, 0);
+	}
+
 	if(isMaskOn)
 		return;
 

@@ -20,6 +20,20 @@ float windUpTimer = 0.0f;
 float windCooldown = 0.0f;
 int windValue;
 bool isWinding = false;
+float warningBlinkTimer = 0.0f;
+bool warningBlinkState = false;
+
+Object warningSmall[2];
+const char *warningSmallPaths[2] = {
+	"rom:/music_box_warning_small0.ci4.sprite",
+	"rom:/music_box_warning_small1.ci4.sprite",
+};
+
+Object warningBig[2];
+const char *warningBigPaths[2] = {
+	"rom:/music_box_warning_big0.ci4.sprite",
+	"rom:/music_box_warning_big1.ci4.sprite",
+};
 
 Object windStates[WIND_STATES];
 const char *windStatePaths[WIND_STATES] = {
@@ -64,6 +78,9 @@ void MusicBoxLoad(void)
 	rdpq_font_end();
 	windUpTextBlock = rspq_block_end();
 
+	ObjectsLoad(warningSmall, 2, warningSmallPaths);
+	ObjectsLoad(warningBig, 2, warningBigPaths);
+
 	windValue = WIND_VALUE_MAX - 1;
 }
 
@@ -72,10 +89,19 @@ void MusicBoxUnload(void)
 	ObjectsUnload(windStates, WIND_STATES);
 	ObjectsUnload(windButton, 2);
 	rspq_block_free(windUpTextBlock);
+	ObjectsUnload(warningSmall, 2);
+	ObjectsUnload(warningBig, 2);
 }
 
 void MusicBoxUpdate(double dt, struct controller_data held)
 {
+	bool inDanger = windValue <= 200;
+	warningBlinkTimer += dt * (inDanger ? SpeedFPS(20) : SpeedFPS(5));
+	bool changeBlink;
+	warningBlinkTimer = Wrapf(warningBlinkTimer, 1.0f, &changeBlink);
+	if(changeBlink)
+		warningBlinkState ^= 1;
+
 	windCooldown = Clampf(windCooldown - dt * 10, 0, 10);
 
 	bool hasTickedDown;
@@ -106,13 +132,23 @@ void MusicBoxUpdate(double dt, struct controller_data held)
 	windUpSFXTimer = Wrapf(windUpSFXTimer, 0.5f, &playWindSound);
 	if(playWindSound)
 		wav64_play(&windSFX, SFXC_BLIP);
-
-	debugf("%d\n", windValue);
 }
 
 void MusicBoxDraw(void)
 {
-	if(!isCameraVisible || camSelected != CAM_11)
+	bool inDanger = windValue <= 200;
+	bool showWarning = warningBlinkState && windValue <= 400;
+	rdpq_set_mode_copy(true);
+	if(!isCameraVisible) {
+		if(showWarning)
+			ObjectDraw(warningBig[inDanger], 842, 590, 0, 0);
+		return;
+	}
+
+	if(showWarning)
+		ObjectDraw(warningSmall[inDanger], 868, 448, 0, 0);
+
+	if(camSelected != CAM_11)
 		return;
 
 	rdpq_set_mode_copy(false);

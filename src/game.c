@@ -72,9 +72,10 @@ void GameDraw(void)
 		rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
 		StaticDraw();
 		CameraUIDraw();
-		MusicBoxDraw();
 		BlipDraw();
 	}
+
+	MusicBoxDraw();
 
 	rdpq_set_mode_copy(true);
 	CameraFlipDraw();

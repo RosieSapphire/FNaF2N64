@@ -67,7 +67,7 @@ int main(void)
 		}
 		rdpq_detach_show();
 		GlobalUpdate(dt);
-		ObjectDebug(dt);
+		//ObjectDebug(dt);
 
 		if(audio_can_write()) {
 			short *audio_buf = audio_write_begin();

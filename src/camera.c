@@ -7,6 +7,9 @@
 #include "global.h"
 #include "lights.h"
 #include "mask.h"
+#include <stdlib.h>
+
+#include "toy_bonnie.h"
 
 #define FLIP_FRAMES 11
 #define CAM_TURN_MIN -576
@@ -20,6 +23,7 @@ const int buttonPos[CAM_COUNT][2] = {
 
 float camFollow = 0.0f;
 int camDir = 0;
+float glitchTimer = 0.0f;
 
 Object camFlip[FLIP_FRAMES];
 const char *camFlipPaths[FLIP_FRAMES] = {
@@ -303,16 +307,131 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 void CameraViewDraw(void)
 {
 	CameraViewsUnload(true);
+
+	if(glitchTimer) {
+		rdpq_set_mode_fill(RGBA16(0, 0, 0, 0xFF));
+		rdpq_fill_rectangle(0, 0, 320, 240);
+		CameraViewsUnload(false);
+		return;
+	}
+
+	debugf("%d, %d\n", camSelected, camState);
 	ObjectLoad(views + camSelected, viewPaths[camSelected][camState]);
 
 	float camFollowReal = Clampf(camFollow, CAM_TURN_MIN, 0);
 	camFollowReal *= camSelected > CAM_06;
 
+	rdpq_set_mode_copy(false);
 	ObjectDraw(views[camSelected], camFollowReal, 0, 0, 0);
 }
 
 void CameraViewUpdate(double dt, struct controller_data down)
 {
+	camStateLast = camState;
+	bool toyBonnieInRoom = toyBonnieCam == (int)camSelected;
+	bool toyBonnieAppeared = toyBonnieCamLast != toyBonnieCam &&
+		((toyBonnieCamLast == (int)camSelected) || 
+		(toyBonnieCam == (int)camSelected));
+	bool lightOn = lightState > 0;
+
+	glitchTimer = Clampf(glitchTimer - dt * 60, 0, 150);
+	if(toyBonnieAppeared)
+		glitchTimer = 50 + (rand() % 100);
+
+	switch(camSelected) {
+	case CAM_01:
+		camState = lightOn;
+		break;
+
+	case CAM_02:
+		if(lightOn) {
+			camState = 1;
+			if(toyBonnieInRoom) {
+				camState = 2;
+				toyBonnieStunTimer = 400;
+			}
+		} else {
+			camState = 0;
+		}
+		break;
+
+	case CAM_03:
+		if(lightOn) {
+			camState = 1;
+			if(toyBonnieInRoom) {
+				camState = 4;
+				toyBonnieStunTimer = 400;
+			}
+		} else
+			camState = 0;
+		break;
+
+	case CAM_04:
+		if(lightOn) {
+			camState = 1;
+			if(toyBonnieInRoom) {
+				camState = 6;
+				toyBonnieStunTimer = 400;
+			}
+		} else {
+			if(toyBonnieInRoom)
+				camState = 5;
+			else
+				camState = 0;
+		}
+		break;
+
+	case CAM_05:
+		camState = lightOn;
+		break;
+
+	case CAM_06:
+		if(lightOn) {
+			camState = 1;
+			if(toyBonnieInRoom) {
+				camState = 2;
+				toyBonnieStunTimer = 400;
+			}
+		} else
+			camState = 0;
+		break;
+
+	case CAM_07:
+		camState = lightOn;
+		break;
+
+	case CAM_08:
+		camState = lightOn;
+		break;
+
+	case CAM_09:
+		if(lightOn) {
+			camState = 1;
+			if(!toyBonnieInRoom)
+				camState = 3;
+		} else {
+			camState = 0;
+			if(!toyBonnieInRoom)
+				camState = 2;
+		}
+		break;
+
+	case CAM_10:
+		camState = lightOn;
+		break;
+
+	case CAM_11:
+		camState = lightOn;
+		break;
+
+	case CAM_12:
+		camState = lightOn;
+		break;
+
+	default:
+		break;
+	}
+
 	/* Update camera follow */
 	if(camFollow > 120)
 		camDir = 0;
@@ -338,9 +457,6 @@ void CameraViewUpdate(double dt, struct controller_data down)
 		down.c->C_left, down.c->C_right, down.c->C_up, down.c->C_down,
 	};
 
-	camStateLast = camState;
-	camState = lightState > 0;
-
 	int camSelectedNextLUT[CAM_COUNT][4] = {
 		{    -1, CAM_02, CAM_03, CAM_05},
 		{CAM_01, CAM_10, CAM_04, CAM_06},
@@ -365,6 +481,7 @@ void CameraViewUpdate(double dt, struct controller_data down)
 			continue;
 
 		camSelected = newCamSelected;
+		camState = 0;
 		BlipTrigger(true, 1);
 		break;
 	}

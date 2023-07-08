@@ -10,6 +10,8 @@
 #include "static.h"
 #include "music_box.h"
 
+#include "toy_bonnie.h"
+
 static bool isLoaded = false;
 
 void GameLoad(void)
@@ -97,6 +99,8 @@ enum Scene GameUpdate(double dt, struct controller_data down,
 	CameraFlipUpdate(dt, down);
 	CameraViewUpdate(dt, down);
 	MusicBoxUpdate(dt, held);
+
+	ToyBonnieUpdate(dt);
 
 	return SCENE_MAIN_GAME;
 }

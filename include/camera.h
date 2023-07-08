@@ -28,6 +28,6 @@ void CameraFlipDraw(void);
 void CameraUIDraw(void);
 void CameraFlipUpdate(double dt, struct controller_data down);
 void CameraViewDraw(void);
-void CameraViewUpdate(struct controller_data down);
+void CameraViewUpdate(double dt, struct controller_data down);
 
 #endif /* MASK_H */

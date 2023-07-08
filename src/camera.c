@@ -8,6 +8,7 @@
 #include "lights.h"
 
 #define FLIP_FRAMES 11
+#define CAM_TURN_MIN -576
 
 const int buttonPos[CAM_COUNT][2] = {
 	{602, 557}, {734, 558}, {602, 491},
@@ -15,6 +16,9 @@ const int buttonPos[CAM_COUNT][2] = {
 	{758, 431}, {603, 420}, {915, 390},
 	{847, 509}, {950, 465}, {933, 558},
 };
+
+float camFollow = 0.0f;
+int camDir = 0;
 
 Object camFlip[FLIP_FRAMES];
 const char *camFlipPaths[FLIP_FRAMES] = {
@@ -296,11 +300,28 @@ void CameraViewDraw(void)
 {
 	CameraViewsUnload(true);
 	ObjectLoad(views + camSelected, viewPaths[camSelected][camState]);
-	ObjectDraw(views[camSelected], 0, 0, 0, 0);
+
+	float camFollowReal = Clampf(camFollow, CAM_TURN_MIN, 0);
+	camFollowReal *= camSelected > CAM_06;
+
+	ObjectDraw(views[camSelected], camFollowReal, 0, 0, 0);
 }
 
-void CameraViewUpdate(struct controller_data down)
+void CameraViewUpdate(double dt, struct controller_data down)
 {
+	/* Update camera follow */
+	if(camFollow > 120)
+		camDir = 0;
+
+	if(camFollow < -692)
+		camDir = 1;
+
+	const float camTurnSpeed = 130;
+	if(camDir)
+		camFollow += dt * camTurnSpeed;
+	else
+		camFollow -= dt * camTurnSpeed;
+
 	if(!isCameraVisible) {
 		mixer_ch_set_vol(SFXC_CAMERA_DRONE, 0, 0);
 		CameraViewsUnload(false);

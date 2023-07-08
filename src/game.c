@@ -87,7 +87,7 @@ enum Scene GameUpdate(double dt, struct controller_data down,
 	LightsUpdate(held);
 	MaskUpdate(dt, down);
 	CameraFlipUpdate(dt, down);
-	CameraViewUpdate(down);
+	CameraViewUpdate(dt, down);
 
 	return SCENE_MAIN_GAME;
 }

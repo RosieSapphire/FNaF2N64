@@ -3,6 +3,8 @@
 
 #include <libdragon.h>
 
+extern bool isCameraUsingLast;
+extern bool isCameraVisibleLast;
 extern bool isCameraUsing;
 extern bool isCameraVisible;
 

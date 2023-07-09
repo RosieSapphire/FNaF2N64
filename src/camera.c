@@ -8,6 +8,7 @@
 #include "lights.h"
 #include "mask.h"
 #include <stdlib.h>
+#include "camera_state.h"
 
 #include "toy_bonnie.h"
 
@@ -40,125 +41,14 @@ const char *camFlipPaths[FLIP_FRAMES] = {
 	"rom:/camflip10.ci8.sprite",
 };
 
-const char *party1CamPaths[4] = {
-	"rom:/party_1_dark.ci8.sprite",
-	"rom:/party_1_empty.ci8.sprite",
-	"rom:/party_1_chica.ci8.sprite",
-	"rom:/party_1_old_bonnie.ci8.sprite",
-};
-
-const char *party2CamPaths[5] = {
-	"rom:/party_2_empty_dark.ci8.sprite",
-	"rom:/party_2_empty_light.ci8.sprite",
-	"rom:/party_2_bonnie.ci8.sprite",
-	"rom:/party_2_old_chica_dark.ci8.sprite",
-	"rom:/party_2_old_chica_light.ci8.sprite",
-};
-
-const char *party3CamPaths[5] = {
-	"rom:/party_3_empty_dark.ci8.sprite",
-	"rom:/party_3_empty_light.ci8.sprite",
-	"rom:/party_3_fred_dark.ci8.sprite",
-	"rom:/party_3_fred_light.ci8.sprite",
-	"rom:/party_3_bonnie.ci8.sprite",
-};
-
-const char *party4CamPaths[7] = {
-	"rom:/party_4_empty_dark.ci8.sprite",
-	"rom:/party_4_empty_light.ci8.sprite",
-	"rom:/party_4_pal.ci8.sprite",
-	"rom:/party_4_chica.ci8.sprite",
-	"rom:/party_4_old_chica.ci8.sprite",
-	"rom:/party_4_bonnie_dark.ci8.sprite",
-	"rom:/party_4_bonnie_light.ci8.sprite",
-};
-
-const char *leftVentCamPaths[6] = {
-	"rom:/left_vent_dark.ci8.sprite",
-	"rom:/left_vent_empty.ci8.sprite",
-	"rom:/left_vent_balloon.ci8.sprite",
-	"rom:/left_vent_chica.ci8.sprite",
-	"rom:/left_vent_old_bonnie.ci8.sprite",
-	"rom:/left_vent_endo.ci8.sprite",
-};
-
-const char *rightVentCamPaths[6] = {
-	"rom:/right_vent_dark.ci8.sprite",
-	"rom:/right_vent_empty.ci8.sprite",
-	"rom:/right_vent_bonnie.ci8.sprite",
-	"rom:/right_vent_mangle.ci8.sprite",
-	"rom:/right_vent_old_chica.ci8.sprite",
-};
-
-const char *mainHallCamPaths[6] = {
-	"rom:/main_hall_empty_dark.ci8.sprite",
-	"rom:/main_hall_empty_light.ci8.sprite",
-	"rom:/main_hall_old_bonnie.ci8.sprite",
-	"rom:/main_hall_old_fred.ci8.sprite",
-	"rom:/main_hall_chica_dark.ci8.sprite",
-	"rom:/main_hall_chica_light.ci8.sprite",
-};
-
-const char *partsCamPaths[7] = {
-	"rom:/parts_dark.ci8.sprite",
-	"rom:/parts_all.ci8.sprite",
-	"rom:/parts_fred.ci8.sprite",
-	"rom:/parts_fred_chic.ci8.sprite",
-	"rom:/parts_purple.ci8.sprite",
-	"rom:/parts_fox.ci8.sprite",
-	"rom:/parts_empty.ci8.sprite",
-};
-
-const char *stageCamPaths[7] = {
-	"rom:/stage_all_dark.ci8.sprite",
-	"rom:/stage_all_light.ci8.sprite",
-	"rom:/stage_fred_chic_dark.ci8.sprite",
-	"rom:/stage_fred_chic_light.ci8.sprite",
-	"rom:/stage_fred_dark.ci8.sprite",
-	"rom:/stage_fred_light.ci8.sprite",
-	"rom:/stage_empty.ci8.sprite",
-};
-
-const char *gameAreaCamPaths[6] = {
-	"rom:/game_area_bb_dark.ci8.sprite",
-	"rom:/game_area_bb_light.ci8.sprite",
-	"rom:/game_area_empty_dark.ci8.sprite",
-	"rom:/game_area_empty_light.ci8.sprite",
-	"rom:/game_area_fred_bb_light.ci8.sprite",
-	"rom:/game_area_fred_light.ci8.sprite",
-};
-
-const char *prizeCornerCamPaths[6] = {
-	"rom:/prize_corner_dark.ci8.sprite",
-	"rom:/prize_corner_empty.ci8.sprite",
-	"rom:/prize_corner_puppet0.ci8.sprite",
-	"rom:/prize_corner_puppet1.ci8.sprite",
-	"rom:/prize_corner_puppet2.ci8.sprite",
-	"rom:/prize_corner_endo.ci8.sprite",
-};
-
-const char *kidsCoveCamPaths[3] = {
-	"rom:/kids_cove_dark.ci8.sprite",
-	"rom:/kids_cove_mangle.ci8.sprite",
-	"rom:/kids_cove_empty.ci8.sprite",
-};
-
-const int camStateCounts[CAM_COUNT] = {
-	4, 5, 5, 7, 6, 6, 6, 7, 7, 6, 6, 3
-};
-
-const char **viewPaths[CAM_COUNT] = {
-	party1CamPaths, party2CamPaths, party3CamPaths, party4CamPaths,
-	leftVentCamPaths, rightVentCamPaths, mainHallCamPaths, partsCamPaths,
-	stageCamPaths, gameAreaCamPaths, prizeCornerCamPaths, kidsCoveCamPaths
-};
-
 enum CameraStates camSelected = CAM_09;
-int camStateLast = 0;
-int camState = 0;
+int camStatesLast[CAM_COUNT] = {0};
+int camStates[CAM_COUNT] = {0};
 Object views[CAM_COUNT];
 
 static float timer = 0.0f;
+bool isCameraUsingLast = false;
+bool isCameraVisibleLast = false;
 bool isCameraUsing = false;
 bool isCameraVisible = false;
 
@@ -211,7 +101,7 @@ void CameraViewsUnload(bool excludeUsing)
 {
 	for(int i = 0; i < CAM_COUNT; i++) {
 		if(excludeUsing && (i == (int)camSelected)
-				&& (camStateLast == camState))
+				&& (camStatesLast[i] == camStates[i]))
 			continue;
 
 		ObjectUnload(views + i);
@@ -287,7 +177,8 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 			0, FLIP_FRAMES);
 
 	if(glitchTimer) {
-		mixer_ch_set_vol(SFXC_STARE, 0.6f, 0.6f);
+		if(isCameraVisible)
+			mixer_ch_set_vol(SFXC_STARE, 0.6f, 0.6f);
 	} else {
 		mixer_ch_set_vol(SFXC_STARE, 0, 0);
 	}
@@ -295,9 +186,9 @@ void CameraFlipUpdate(double dt, struct controller_data down)
 	if(isMaskOn)
 		return;
 
-	bool isCameraUsingLast = isCameraUsing;
+	isCameraUsingLast = isCameraUsing;
 	isCameraUsing ^= down.c->R && CameraFlipAtStartOrEnd();
-	bool isCameraVisibleLast = isCameraVisible;
+	isCameraVisibleLast = isCameraVisible;
 	isCameraVisible = CameraFlipAtEnd();
 	mixer_ch_set_vol(SFXC_CAMERA_FLIP, 0.5f, 0.5f);
 
@@ -321,8 +212,8 @@ void CameraViewDraw(void)
 		return;
 	}
 
-	debugf("%d, %d\n", camSelected, camState);
-	ObjectLoad(views + camSelected, viewPaths[camSelected][camState]);
+	ObjectLoad(views + camSelected,
+			CameraStateGetPath(camStates, camSelected));
 
 	float camFollowReal = Clampf(camFollow, CAM_TURN_MIN, 0);
 	camFollowReal *= camSelected > CAM_06;
@@ -333,20 +224,34 @@ void CameraViewDraw(void)
 
 void CameraViewUpdate(double dt, struct controller_data down)
 {
-	camStateLast = camState;
+	for(int i = 0; i < CAM_COUNT; i++)
+		camStatesLast[i] = camStates[i];
+
+	/*
 	bool toyBonnieInRoom = toyBonnieCam == (int)camSelected;
+	bool lightOn = lightState > 0;
+	*/
+
 	bool toyBonnieAppeared = toyBonnieCamLast != toyBonnieCam &&
 		((toyBonnieCamLast == (int)camSelected) || 
 		(toyBonnieCam == (int)camSelected));
-	bool lightOn = lightState > 0;
 
 	glitchTimer = Clampf(glitchTimer - dt * 60, 0, 150);
 	if(toyBonnieAppeared)
 		glitchTimer = 50 + (rand() % 100);
 
+	camStates[camSelected] = 0;
+	camStates[camSelected] |= (lightState > 0);
+	camStates[camSelected] |= (toyBonnieCam == (int)camSelected) << 1;
+
+	if(camStates[camSelected] & CS_TOY_BONNIE &&
+			camStates[camSelected] & CS_LIGHTS_ON &&
+			camSelected != CAM_09 && isCameraVisible)
+		toyBonnieStunTimer = 400;
+	/*
 	switch(camSelected) {
 	case CAM_01:
-		camState = lightOn;
+		camState[camSelected] = lightOn;
 		break;
 
 	case CAM_02:
@@ -437,6 +342,7 @@ void CameraViewUpdate(double dt, struct controller_data down)
 	default:
 		break;
 	}
+	*/
 
 	/* Update camera follow */
 	if(camFollow > 120)
@@ -487,7 +393,7 @@ void CameraViewUpdate(double dt, struct controller_data down)
 			continue;
 
 		camSelected = newCamSelected;
-		camState = 0;
+		camStates[camSelected] = 0;
 		BlipTrigger(true, 1);
 		break;
 	}

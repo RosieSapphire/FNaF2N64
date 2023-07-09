@@ -25,6 +25,8 @@ void GameLoad(void)
 	CameraUILoad();
 	CameraFlipLoad();
 	MusicBoxLoad();
+	ToyBonnieScareLoad();
+	camSelected = CAM_09;
 
 	wav64_play(&lightHumSFX, SFXC_LIGHT_HUM);
 	wav64_play(&fanSFX, SFXC_FAN);
@@ -50,6 +52,7 @@ void GameUnload(void)
 	isCameraVisible = false;
 	isCameraUsing = false;
 	MusicBoxUnload();
+	ToyBonnieScareUnload();
 
 	MixerStopEverything();
 
@@ -65,6 +68,7 @@ void GameDraw(void)
 		rdpq_set_mode_copy(true);
 		FanDraw();
 		LightsDraw();
+		ToyBonnieScareDraw();
 		PerspectiveEnd();
 	} else {
 		rdpq_set_mode_copy(false);

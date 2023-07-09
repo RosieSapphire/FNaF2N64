@@ -5,8 +5,9 @@
 #include "sfx.h"
 #include "mask.h"
 #include "camera.h"
+#include "toy_bonnie.h"
 
-#define ROOM_STATES 4
+#define ROOM_STATES 5
 #define ROOM_TURN_SPEED 15
 #define ROOM_TURN_NOSE_HONK -143
 #define ROOM_TURN_MIN -576
@@ -20,6 +21,7 @@ const char *roomStatePaths[ROOM_STATES] = {
 	"rom:/room_left_none.ci8.sprite",
 	"rom:/room_center_none.ci8.sprite",
 	"rom:/room_right_none.ci8.sprite",
+	"rom:/room_right_bonnie.ci8.sprite",
 };
 
 void OfficeLoad(void)
@@ -34,7 +36,11 @@ void OfficeUnload(void)
 
 void OfficeDraw(void)
 {
-	ObjectDraw(roomStates[lightState], officeTurn, 0, 0, 0);
+	int roomState = lightState;
+	if(toyBonnieCam == CAM_COUNT && lightState == LIGHT_RIGHT)
+		roomState = 4;
+
+	ObjectDraw(roomStates[roomState], officeTurn, 0, 0, 0);
 }
 
 void OfficeUpdate(double dt, struct controller_data held,

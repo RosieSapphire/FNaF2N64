@@ -20,7 +20,7 @@ enum SFXChannels {
 
 extern wav64_t lightHumSFX, fanSFX, noseHonkSFX, maskOnSFX, maskOffSFX,
        maskBreathSFX, blipSFX1, blipSFX2, titleMusic, staticSFX, camUpSFX,
-       camDownSFX, camDroneSFX, boxMusic, windSFX, stareSFX;
+       camDownSFX, camDroneSFX, boxMusic, windSFX, stareSFX, jumpscareSFX;
 
 void SFXLoad(void);
 void MixerStopEverything(void);
